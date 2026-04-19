@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>初始化设置</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --border: #d2d2d7;
+            --border-light: #e5e5e7;
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        html {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .setup-container {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .setup-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .setup-logo {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+        }
+
+        .setup-logo svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .setup-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .setup-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--danger);
+            margin-top: 6px;
+            display: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 11px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 13px;
+            display: none;
+            text-align: center;
+        }
+
+        .message.error {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--danger);
+        }
+
+        .message.success {
+            background: rgba(52, 199, 89, 0.1);
+            color: var(--success);
+        }
+
+        .password-strength {
+            height: 4px;
+            background: var(--bg-secondary);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s, background 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <div class="setup-logo">
+                <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="32" height="32" rx="8" fill="#0071e3"/>
+                    <path d="M16 8L22 12V18L16 22L10 18V12L16 8Z" stroke="white" stroke-width="1.5" fill="none"/>
+                    <path d="M10 18L16 22L22 18" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M16 14V22" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="16" cy="12" r="2" fill="white"/>
+                </svg>
+            </div>
+            <h1>初始化设置</h1>
+            <p>请设置您的管理员账户</p>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <form id="setup-form" onsubmit="return handleSetup(event)">
+            <div class="form-group">
+                <label class="form-label" for="username">用户名</label>
+                <input type="text" class="form-input" id="username" name="username" placeholder="3-30个字符，字母、数字、下划线" required>
+                <p class="form-hint">字母、数字、下划线，3-30个字符</p>
+                <p class="form-error" id="username-error"></p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">密码</label>
+                <input type="password" class="form-input" id="password" name="password" placeholder="请设置密码" required oninput="checkStrength()">
+                <div class="password-strength"><div class="password-strength-bar" id="strength-bar"></div></div>
+                <p class="form-hint">至少8位，必须包含大小写字母和数字</p>
+                <p class="form-error" id="password-error"></p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="confirm-password">确认密码</label>
+                <input type="password" class="form-input" id="confirm-password" name="confirm-password" placeholder="再次输入密码" required>
+                <p class="form-error" id="confirm-error"></p>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submit-btn">创建账户</button>
+        </form>
+    </div>
+
+    <script>
+        function checkStrength() {
+            const password = document.getElementById('password').value;
+            const bar = document.getElementById('strength-bar');
+            let strength = 0;
+
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+
+            const widths = ['0%', '25%', '50%', '75%', '100%'];
+            const colors = ['#ff3b30', '#ffa500', '#ffa500', '#34c759', '#34c759'];
+
+            bar.style.width = widths[strength];
+            bar.style.background = colors[strength];
+        }
+
+        async function handleSetup(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const submitBtn = document.getElementById('submit-btn');
+            const messageEl = document.getElementById('message');
+
+            document.querySelectorAll('.form-error').forEach(el => el.style.display = 'none');
+
+            if (password !== confirmPassword) {
+                document.getElementById('confirm-error').textContent = '两次输入的密码不一致';
+                document.getElementById('confirm-error').style.display = 'block';
+                return false;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = '创建中...';
+
+            try {
+                const response = await fetch('/api/auth/setup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('创建成功，正在跳转...', 'success');
+                    setTimeout(() => { window.location.href = '/login'; }, 1000);
+                } else {
+                    showMessage(result.message || '创建失败', 'error');
+                    if (result.errors) {
+                        for (const [field, error] of Object.entries(result.errors)) {
+                            const errorEl = document.getElementById(field + '-error');
+                            if (errorEl) {
+                                errorEl.textContent = error;
+                                errorEl.style.display = 'block';
+                            }
+                        }
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '创建账户';
+                }
+            } catch (error) {
+                showMessage('网络错误，请稍后重试', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '创建账户';
+            }
+
+            return false;
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = 'message ' + type;
+            messageEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

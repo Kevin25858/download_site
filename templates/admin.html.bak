@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 文件分享系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #409eff;
+            --primary-hover: #66b1ff;
+            --primary-light: #ecf5ff;
+            --success-color: #67c23a;
+            --warning-color: #e6a23c;
+            --danger-color: #f56c6c;
+            --info-color: #909399;
+            --text-primary: #303133;
+            --text-regular: #606266;
+            --text-secondary: #909399;
+            --border-color: #dcdfe6;
+            --border-light: #e4e7ed;
+            --bg-color: #f5f7fa;
+            --sidebar-width: 220px;
+            --header-height: 60px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        /* 布局 */
+        .admin-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #001529;
+            color: #fff;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            background: #002140;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .sidebar-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .sidebar-menu {
+            padding: 16px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .menu-item:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .menu-item.active {
+            color: #fff;
+            background: var(--primary-color);
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+
+        /* 顶部导航 */
+        .header {
+            height: var(--header-height);
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: var(--text-regular);
+        }
+
+        /* 内容区域 */
+        .content-wrapper {
+            padding: 24px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* 卡片 */
+        .card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-color);
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 16px;
+            color: var(--text-regular);
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-regular);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border-light);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            border-radius: 4px;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        /* 表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .data-table th {
+            background: var(--bg-color);
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .data-table td {
+            color: var(--text-regular);
+            font-size: 14px;
+        }
+
+        .data-table tr:hover td {
+            background: var(--primary-light);
+        }
+
+        .data-table .empty-cell {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        /* 按钮 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: #fff;
+            border-color: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background: #85ce61;
+            border-color: #85ce61;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: #fff;
+            border-color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #f78989;
+            border-color: #f78989;
+        }
+
+        .btn-warning {
+            background: #ffa500;
+            color: #fff;
+            border-color: #ffa500;
+        }
+
+        .btn-warning:hover {
+            background: #ff8c00;
+            border-color: #ff8c00;
+        }
+
+        .share-hint {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+        }
+
+        .btn-default {
+            background: #fff;
+            color: var(--text-regular);
+            border-color: var(--border-color);
+        }
+
+        .btn-default:hover {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn + .btn {
+            margin-left: 8px;
+        }
+
+        /* 表单 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-regular);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .modal-close {
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 消息提示 */
+        .message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .message.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .message-success {
+            background: #f0f9eb;
+            color: var(--success-color);
+            border: 1px solid #c2e7b0;
+        }
+
+        .message-error {
+            background: #fef0f0;
+            color: var(--danger-color);
+            border: 1px solid #fbc4c4;
+        }
+
+        /* 分享链接显示 */
+        .share-link-box {
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .share-link-text {
+            flex: 1;
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--text-regular);
+            word-break: break-all;
+        }
+
+        /* 加载状态 */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .pagination-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-regular);
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .pagination-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .tag-success {
+            background: #f0f9eb;
+            color: var(--success-color);
+        }
+
+        .tag-warning {
+            background: #fdf6ec;
+            color: var(--warning-color);
+        }
+
+        .tag-danger {
+            background: #fef0f0;
+            color: var(--danger-color);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .data-table {
+                font-size: 12px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">F</div>
+                <h1>文件分享系统</h1>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="menu-item active" data-page="files">
+                    <span class="menu-icon">📁</span>
+                    <span>文件管理</span>
+                </div>
+                <div class="menu-item" data-page="shares">
+                    <span class="menu-icon">🔗</span>
+                    <span>分享链接</span>
+                </div>
+                <div class="menu-item" data-page="settings">
+                    <span class="menu-icon">⚙️</span>
+                    <span>系统设置</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <header class="header">
+                <h2 class="header-title" id="page-title">文件管理</h2>
+                <div class="header-user">
+                    <span>管理员</span>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- 文件管理页面 -->
+                <section class="page-section active" id="page-files">
+                    <!-- 上传区域 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">文件上传</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="upload-area" id="upload-area">
+                                <div class="upload-icon">☁️</div>
+                                <div class="upload-text">点击或拖拽文件到此处上传</div>
+                                <div class="upload-hint">支持任意类型文件，单个文件最大 500MB</div>
+                                <input type="file" class="upload-input" id="file-input" multiple>
+                            </div>
+                            <div class="progress-container" id="progress-container">
+                                <div class="progress-info">
+                                    <span id="progress-filename">上传中...</span>
+                                    <span id="progress-percent">0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progress-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文件列表 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">文件列表</span>
+                            <button class="btn btn-primary btn-sm" onclick="loadFiles()">刷新</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>文件名</th>
+                                        <th>大小</th>
+                                        <th>上传时间</th>
+                                        <th>分享</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="files-table-body">
+                                    <tr>
+                                        <td colspan="5" class="empty-cell">加载中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="pagination" id="files-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 分享链接页面 -->
+                <section class="page-section" id="page-shares">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">分享链接管理</span>
+                            <button class="btn btn-primary btn-sm" onclick="loadShares()">刷新</button>
+                        </div>
+                        <div class="card-body">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>文件名</th>
+                                        <th>Token</th>
+                                        <th>下载次数</th>
+                                        <th>过期时间</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="shares-table-body">
+                                    <tr>
+                                        <td colspan="6" class="empty-cell">加载中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="pagination" id="shares-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 系统设置页面 -->
+                <section class="page-section" id="page-settings">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">系统设置</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">公网访问地址</label>
+                                <input type="text" class="form-input" id="public-url-input" placeholder="例如: https://example.com">
+                                <small style="color: var(--text-secondary); margin-top: 4px; display: block;">用于生成分享链接的完整URL地址</small>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveConfig()">保存设置</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- 生成分享链接模态框 -->
+    <div class="modal-overlay" id="share-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">生成分享链接</span>
+                <button class="modal-close" onclick="closeShareModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">最大下载次数 (可选)</label>
+                    <input type="number" class="form-input" id="max-downloads" placeholder="不填则无限制">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">过期时间 (小时，可选)</label>
+                    <input type="number" class="form-input" id="expires-hours" placeholder="不填则永不过期">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeShareModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmCreateShare()">生成链接</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分享结果模态框 -->
+    <div class="modal-overlay" id="share-result-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">分享链接已生成</span>
+                <button class="modal-close" onclick="closeShareResultModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-link-box">
+                    <span class="share-link-text" id="share-link-text"></span>
+                    <button class="btn btn-primary btn-sm" onclick="copyShareLink()">复制</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeShareResultModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div class="message" id="message"></div>
+
+    <script>
+        // 全局状态
+        let currentFileId = null;
+        let filesPagination = { page: 1, per_page: 20, total: 0 };
+        let sharesPagination = { page: 1, per_page: 20, total: 0 };
+
+        // 页面切换
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const page = this.dataset.page;
+                switchPage(page);
+            });
+        });
+
+        function switchPage(page) {
+            // 更新菜单状态
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+            // 更新页面标题
+            const titles = {
+                'files': '文件管理',
+                'shares': '分享链接',
+                'settings': '系统设置'
+            };
+            document.getElementById('page-title').textContent = titles[page];
+
+            // 显示对应页面
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`page-${page}`).classList.add('active');
+
+            // 加载数据
+            if (page === 'files') {
+                loadFiles();
+            } else if (page === 'shares') {
+                loadShares();
+            } else if (page === 'settings') {
+                loadConfig();
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'success') {
+            const msgEl = document.getElementById('message');
+            msgEl.textContent = message;
+            msgEl.className = `message message-${type} show`;
+            setTimeout(() => {
+                msgEl.classList.remove('show');
+            }, 3000);
+        }
+
+        // 格式化文件大小
+        function formatFileSize(size) {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+            let index = 0;
+            while (size >= 1024 && index < units.length - 1) {
+                size /= 1024;
+                index++;
+            }
+            return `${size.toFixed(2)} ${units[index]}`;
+        }
+
+        // 格式化日期
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN');
+        }
+
+        // 文件上传
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const progressContainer = document.getElementById('progress-container');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressFilename = document.getElementById('progress-filename');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadFiles(files);
+            }
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                uploadFiles(fileInput.files);
+            }
+        });
+
+        function uploadFiles(files) {
+            Array.from(files).forEach(file => {
+                uploadSingleFile(file);
+            });
+        }
+
+        function uploadSingleFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            progressContainer.classList.add('active');
+            progressFilename.textContent = `上传中: ${file.name}`;
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                progressContainer.classList.remove('active');
+                if (xhr.status === 201) {
+                    showMessage('文件上传成功');
+                    loadFiles();
+                } else {
+                    const response = JSON.parse(xhr.responseText);
+                    showMessage(response.message || '上传失败', 'error');
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                progressContainer.classList.remove('active');
+                showMessage('上传失败', 'error');
+            });
+
+            xhr.open('POST', '/api/admin/upload');
+            xhr.send(formData);
+        }
+
+        // 加载文件列表
+        async function loadFiles(page = 1) {
+            try {
+                const response = await fetch(`/api/admin/files?page=${page}&per_page=${filesPagination.per_page}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderFilesTable(result.data.files);
+                    filesPagination = result.data.pagination;
+                    renderFilesPagination();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('加载文件列表失败', 'error');
+            }
+        }
+
+        function renderFilesTable(files) {
+            const tbody = document.getElementById('files-table-body');
+
+            if (files.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-cell">暂无文件</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = files.map(file => {
+                let shareBtn = '';
+                if (file.has_share && file.active_share) {
+                    const shareUrl = `${window.location.origin}/d/${file.active_share.token}`;
+                    shareBtn = `
+                        <button class="btn btn-warning btn-sm" onclick="copyShareUrl('${file.active_share.token}')">已分享</button>
+                        <span class="share-hint">${file.active_share.download_count}次下载</span>
+                    `;
+                } else {
+                    shareBtn = `<button class="btn btn-success btn-sm" onclick="openShareModal(${file.id})">分享</button>`;
+                }
+                return `
+                    <tr>
+                        <td>${file.original_filename}</td>
+                        <td>${formatFileSize(file.file_size)}</td>
+                        <td>${formatDate(file.created_at)}</td>
+                        <td>${shareBtn}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteFile(${file.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderFilesPagination() {
+            const container = document.getElementById('files-pagination');
+            const { page, pages, total } = filesPagination;
+
+            if (pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <button class="pagination-btn" onclick="loadFiles(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <span class="pagination-info">${page} / ${pages} 页 (共 ${total} 条)</span>
+                <button class="pagination-btn" onclick="loadFiles(${page + 1})" ${page >= pages ? 'disabled' : ''}>下一页</button>
+            `;
+        }
+
+        // 删除文件
+        async function deleteFile(fileId) {
+            if (!confirm('确定要删除这个文件吗？')) return;
+
+            try {
+                const response = await fetch(`/api/admin/files/${fileId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('文件删除成功');
+                    loadFiles();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('删除失败', 'error');
+            }
+        }
+
+        // 分享链接模态框
+        function openShareModal(fileId) {
+            currentFileId = fileId;
+            document.getElementById('max-downloads').value = '';
+            document.getElementById('expires-hours').value = '';
+            document.getElementById('share-modal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.remove('active');
+            currentFileId = null;
+        }
+
+        async function confirmCreateShare() {
+            if (!currentFileId) return;
+
+            const maxDownloads = document.getElementById('max-downloads').value;
+            const expiresHours = document.getElementById('expires-hours').value;
+
+            const data = { file_id: currentFileId };
+            if (maxDownloads) data.max_downloads = parseInt(maxDownloads);
+            if (expiresHours) data.expires_in_hours = parseInt(expiresHours);
+
+            try {
+                const response = await fetch('/api/admin/share', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    closeShareModal();
+                    document.getElementById('share-link-text').textContent = result.data.share_url;
+                    document.getElementById('share-result-modal').classList.add('active');
+                    loadShares();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('创建分享链接失败', 'error');
+            }
+        }
+
+        function closeShareResultModal() {
+            document.getElementById('share-result-modal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const linkText = document.getElementById('share-link-text').textContent;
+            copyToClipboard(linkText);
+        }
+
+        // 加载分享链接列表
+        async function loadShares(page = 1) {
+            try {
+                const response = await fetch(`/api/admin/shares?page=${page}&per_page=${sharesPagination.per_page}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderSharesTable(result.data.shares);
+                    sharesPagination = result.data.pagination;
+                    renderSharesPagination();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('加载分享链接失败', 'error');
+            }
+        }
+
+        function renderSharesTable(shares) {
+            const tbody = document.getElementById('shares-table-body');
+
+            if (shares.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-cell">暂无分享链接</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = shares.map(share => {
+                const isExpired = share.expires_at && new Date(share.expires_at) < new Date();
+                const isLimitReached = share.max_downloads && share.download_count >= share.max_downloads;
+                const isActive = share.is_active && !isExpired && !isLimitReached;
+
+                let statusHtml = '';
+                if (isActive) {
+                    statusHtml = '<span class="tag tag-success">有效</span>';
+                } else if (isExpired) {
+                    statusHtml = '<span class="tag tag-warning">已过期</span>';
+                } else if (isLimitReached) {
+                    statusHtml = '<span class="tag tag-danger">次数已达</span>';
+                } else {
+                    statusHtml = '<span class="tag tag-danger">已禁用</span>';
+                }
+
+                const downloadText = share.max_downloads
+                    ? `${share.download_count} / ${share.max_downloads}`
+                    : `${share.download_count}`;
+
+                return `
+                    <tr>
+                        <td>${share.file ? share.file.original_filename : '未知文件'}</td>
+                        <td><code>${share.token.substring(0, 16)}...</code></td>
+                        <td>${downloadText}</td>
+                        <td>${share.expires_at ? formatDate(share.expires_at) : '永不过期'}</td>
+                        <td>${statusHtml}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="copyShareUrl('${share.token}')">复制</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteShare(${share.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderSharesPagination() {
+            const container = document.getElementById('shares-pagination');
+            const { page, pages, total } = sharesPagination;
+
+            if (pages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <button class="pagination-btn" onclick="loadShares(${page - 1})" ${page <= 1 ? 'disabled' : ''}>上一页</button>
+                <span class="pagination-info">${page} / ${pages} 页 (共 ${total} 条)</span>
+                <button class="pagination-btn" onclick="loadShares(${page + 1})" ${page >= pages ? 'disabled' : ''}>下一页</button>
+            `;
+        }
+
+        async function copyShareUrl(token) {
+            const baseUrl = window.location.origin;
+            const shareUrl = `${baseUrl}/d/${token}`;
+            copyToClipboard(shareUrl);
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessage('链接已复制到剪贴板');
+                }).catch(() => {
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            textarea.style.top = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showMessage('链接已复制到剪贴板');
+                } else {
+                    showMessage('复制失败', 'error');
+                }
+            } catch (err) {
+                showMessage('复制失败', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        async function deleteShare(shareId) {
+            if (!confirm('确定要删除这个分享链接吗？')) return;
+
+            try {
+                const response = await fetch(`/api/admin/shares/${shareId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('分享链接删除成功');
+                    loadShares();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('删除失败', 'error');
+            }
+        }
+
+        // 系统设置
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/admin/config');
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('public-url-input').value = result.data.public_url || '';
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('加载配置失败', 'error');
+            }
+        }
+
+        async function saveConfig() {
+            const publicUrl = document.getElementById('public-url-input').value.trim();
+
+            try {
+                const response = await fetch('/api/admin/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ public_url: publicUrl })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('设置保存成功');
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                showMessage('保存失败', 'error');
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFiles();
+        });
+    </script>
+</body>
+</html>

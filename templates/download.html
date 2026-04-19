@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载 - {{ file_info.filename }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #ffffff;
+            --bg-secondary: #f5f5f7;
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --border: #d2d2d7;
+            --border-light: #e5e5e7;
+            --accent: #0071e3;
+            --accent-hover: #0077ed;
+            --danger: #ff3b30;
+            --success: #34c759;
+            --radius: 12px;
+            --radius-sm: 8px;
+        }
+
+        html {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .download-card {
+            background: var(--bg);
+            border-radius: var(--radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        .file-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: var(--text-secondary);
+        }
+
+        .file-icon.image svg { fill: #f5576c; }
+        .file-icon.video svg { fill: #00f2fe; }
+        .file-icon.audio svg { fill: #38f9d7; }
+        .file-icon.document svg { fill: #fa709a; }
+        .file-icon.archive svg { fill: #a8edea; }
+        .file-icon.code svg { fill: #fcb69f; }
+
+        .filename {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .file-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .file-meta span {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 28px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-sm);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .expired-notice {
+            background: rgba(255, 59, 48, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 20px;
+            color: var(--danger);
+            font-size: 13px;
+            display: none;
+        }
+
+        .expired-notice.show {
+            display: block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .password-section {
+            margin-bottom: 24px;
+        }
+
+        .password-section h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            transition: all 0.2s;
+            text-align: center;
+            letter-spacing: 4px;
+            font-size: 18px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+        }
+
+        .error-msg {
+            color: var(--danger);
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 28px 20px;
+            }
+
+            .stats {
+                gap: 20px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="download-card">
+        <div class="file-icon {{ file_info.file_type_class | default('default') }}" id="fileIcon">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+        </div>
+
+        <h1 class="filename">{{ file_info.filename }}</h1>
+        <p class="file-meta">文件大小: <span>{{ file_info.file_size_formatted }}</span></p>
+
+        <div class="expired-notice" id="expiredNotice">
+            该链接已过期或已达到下载次数限制
+        </div>
+
+        <div class="stats">
+            {% if file_info.max_downloads %}
+            <div class="stat">
+                <div class="stat-value">{{ file_info.max_downloads }}</div>
+                <div class="stat-label">下载限制</div>
+            </div>
+            {% endif %}
+            {% if file_info.expires_at %}
+            <div class="stat">
+                <div class="stat-value" id="expires-days">--</div>
+                <div class="stat-label">剩余天数</div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if file_info.has_password %}
+        <div class="password-section" id="passwordSection">
+            <h3>请输入下载密码</h3>
+            <div class="form-group">
+                <input type="text" class="form-input" id="passwordInput" placeholder="6位数字密码" maxlength="6" autocomplete="off">
+            </div>
+            <p class="error-msg" id="passwordError">密码错误</p>
+            <button class="btn btn-primary" id="verifyBtn" onclick="verifyPassword()">
+                验证密码
+            </button>
+        </div>
+
+        <div class="password-section" id="downloadSection" style="display:none;">
+            <button class="btn btn-primary" id="downloadBtn" href="{{ file_info.download_url }}">
+                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                立即下载
+            </button>
+        </div>
+        {% else %}
+        <a class="btn btn-primary" id="downloadBtn" href="{{ file_info.download_url }}">
+            <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            立即下载
+        </a>
+        {% endif %}
+    </div>
+
+    <script>
+        const fileInfo = {
+            token: "{{ file_info.token }}",
+            filename: "{{ file_info.filename }}",
+            downloadUrl: "{{ file_info.download_url }}",
+            hasPassword: {{ file_info.has_password | tojson }},
+            expiresAt: {{ file_info.expires_at | tojson }}
+        };
+
+        // 文件类型图标
+        const fileIcons = {
+            image: '<path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>',
+            video: '<path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>',
+            audio: '<path d="M12 3v9.28c-.47-.17-.97-.28-1.5-.28C8.01 12 6 14.01 6 16.5S8.01 21 10.5 21c2.31 0 4.2-1.75 4.45-4H15V6h4V3h-7z"/>',
+            document: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
+            archive: '<path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 12H6v-2h8v2zm4-4H6V10h12v2z"/>',
+            code: '<path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>',
+            default: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>'
+        };
+
+        function setFileIcon() {
+            const mimeType = "{{ file_info.mime_type }}";
+            let iconKey = 'default';
+            if (mimeType) {
+                if (mimeType.startsWith('image/')) iconKey = 'image';
+                else if (mimeType.startsWith('video/')) iconKey = 'video';
+                else if (mimeType.startsWith('audio/')) iconKey = 'audio';
+                else if (mimeType.includes('pdf') || mimeType.includes('word') || mimeType.includes('excel') || mimeType.includes('document')) iconKey = 'document';
+                else if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z') || mimeType.includes('tar')) iconKey = 'archive';
+                else if (mimeType.includes('javascript') || mimeType.includes('json') || mimeType.includes('html') || mimeType.includes('css') || mimeType.includes('python')) iconKey = 'code';
+            }
+            document.getElementById('fileIcon').innerHTML = '<svg viewBox="0 0 24 24">' + fileIcons[iconKey] + '</svg>';
+            document.getElementById('fileIcon').className = 'file-icon ' + iconKey;
+        }
+
+        function calculateRemainingDays() {
+            if (fileInfo.expiresAt) {
+                const expiresDate = new Date(fileInfo.expiresAt);
+                const now = new Date();
+                const diffDays = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
+                const daysEl = document.getElementById('expires-days');
+                if (daysEl) {
+                    daysEl.textContent = diffDays > 0 ? diffDays : 0;
+                }
+                if (diffDays <= 0) {
+                    document.getElementById('expiredNotice').classList.add('show');
+                    document.getElementById('downloadBtn') && (document.getElementById('downloadBtn').style.display = 'none');
+                }
+            }
+        }
+
+        async function verifyPassword() {
+            const password = document.getElementById('passwordInput').value.trim();
+            const errorEl = document.getElementById('passwordError');
+            const verifyBtn = document.getElementById('verifyBtn');
+
+            if (!password || password.length !== 6) {
+                errorEl.textContent = '请输入6位数字密码';
+                errorEl.classList.add('show');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = '验证中...';
+
+            try {
+                const res = await fetch('/api/download/' + fileInfo.token + '/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    document.getElementById('passwordSection').style.display = 'none';
+                    document.getElementById('downloadSection').style.display = 'block';
+                } else {
+                    errorEl.textContent = result.message || '密码错误';
+                    errorEl.classList.add('show');
+                    verifyBtn.disabled = false;
+                    verifyBtn.textContent = '验证密码';
+                }
+            } catch (e) {
+                errorEl.textContent = '验证失败，请重试';
+                errorEl.classList.add('show');
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = '验证密码';
+            }
+        }
+
+        document.getElementById('passwordInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                verifyPassword();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setFileIcon();
+            calculateRemainingDays();
+        });
+    </script>
+</body>
+</html>
